@@ -1,4 +1,4 @@
-# EventPro Backend
+# Shiv Event Management Backend
 
 ## Setup
 
@@ -13,7 +13,7 @@ npm run dev
 ## First Time Setup (Create Admin)
 ```bash
 POST /api/auth/setup
-{ "name": "Admin", "email": "admin@eventpro.com", "password": "yourpassword" }
+{ "name": "Admin", "email": "admin@Shiv Event Management.com", "password": "yourpassword" }
 ```
 
 ## Deploy to Render / Railway

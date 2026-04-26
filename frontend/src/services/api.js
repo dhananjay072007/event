@@ -2,37 +2,47 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 60000, // 60 seconds for larger requests
+  timeout: 15000, // 15s default for normal requests
 });
 
-// Request interceptor — attach token
+// Request interceptor — attach token + set timeout per request type
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('adminToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
-  // Only set JSON header if not FormData
+  // Only set JSON header if not FormData (let browser set multipart boundary)
   if (!(config.data instanceof FormData)) {
     config.headers['Content-Type'] = 'application/json';
   }
 
-  // Increase timeout for file uploads
+  // File uploads: 70s timeout (backend uses 60s + buffer)
+  // so the server's error message reaches the client before axios cuts the connection
   if (config.data instanceof FormData) {
-    config.timeout = 120000; // 120 seconds for file uploads
+    config.timeout = 70000;
   }
 
   return config;
 });
 
-// Response interceptor — handle 401
+// Response interceptor — handle 401 + show clearer upload errors
 api.interceptors.response.use(
   res => res,
   err => {
     if (err.response?.status === 401) {
       localStorage.removeItem('adminToken');
-      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+      if (
+        window.location.pathname.startsWith('/admin') &&
+        window.location.pathname !== '/admin/login'
+      ) {
         window.location.href = '/admin/login';
       }
     }
+
+    // Replace generic axios timeout message with actionable text
+    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+      err.message = 'Request timed out. Check your internet connection or server status.';
+    }
+
     return Promise.reject(err);
   }
 );

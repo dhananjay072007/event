@@ -115,9 +115,9 @@ export const deleteBlog = async (req, res, next) => {
 export const getGallery = async (req, res, next) => {
   try {
     const { category } = req.query;
-    const query = category ? { category } : {};
+    const query = category && category !== 'All' ? { category } : {};
     const images = await Gallery.find(query).sort({ order: 1, createdAt: -1 });
-    res.json({ success: true, data: images });
+    res.json({ success: true, data: images, count: images.length });
   } catch (error) { next(error); }
 };
 
@@ -128,21 +128,27 @@ export const uploadGalleryImage = async (req, res, next) => {
 
     const { title, category, description } = req.body;
 
-    if (!title || title.trim() === '') {
-      return res.status(400).json({ success: false, message: 'Title is required' });
+    // Validation
+    if (!title || typeof title !== 'string' || title.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Title is required and must be a string' });
+    }
+    if (!category || !['Wedding', 'Corporate', 'Birthday', 'Anniversary', 'Conference', 'Concert', 'Other'].includes(category)) {
+      return res.status(400).json({ success: false, message: 'Invalid category selected' });
     }
 
+    // Save to database
     const image = await Gallery.create({
       title: title.trim(),
       imageUrl: req.file.path,
       publicId: req.file.filename,
-      category: category || 'Other',
-      description: description || '',
+      category,
+      description: description ? String(description).trim() : '',
     });
 
+    console.log('✅ Gallery image uploaded:', image._id);
     res.status(201).json({ success: true, message: 'Image uploaded successfully', data: image });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('Gallery upload error:', error.message);
     next(error);
   }
 };
@@ -152,10 +158,26 @@ export const deleteGalleryImage = async (req, res, next) => {
   try {
     const image = await Gallery.findById(req.params.id);
     if (!image) return res.status(404).json({ success: false, message: 'Image not found' });
-    await cloudinary.uploader.destroy(image.publicId);
-    await image.deleteOne();
-    res.json({ success: true, message: 'Image deleted' });
-  } catch (error) { next(error); }
+
+    // Delete from Cloudinary if publicId exists
+    if (image.publicId) {
+      try {
+        await cloudinary.uploader.destroy(image.publicId);
+        console.log('✅ Deleted from Cloudinary:', image.publicId);
+      } catch (cloudinaryError) {
+        console.error('⚠️  Cloudinary delete error:', cloudinaryError.message);
+        // Continue deletion even if Cloudinary fails
+      }
+    }
+
+    // Delete from database
+    await Gallery.findByIdAndDelete(req.params.id);
+    console.log('✅ Deleted from database:', req.params.id);
+    res.json({ success: true, message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Gallery delete error:', error.message);
+    next(error);
+  }
 };
 
 // ==================== SERVICE CONTROLLER ====================
@@ -335,8 +357,7 @@ export const updateSettings = async (req, res, next) => {
   try {
     let settings = await SiteSettings.findOne();
     if (!settings) settings = await SiteSettings.create({});
-    Object.assign(settings, req.body);
-    await settings.save();
+    settings = await SiteSettings.findByIdAndUpdate(settings._id, req.body, { new: true, runValidators: true });
     res.json({ success: true, message: 'Settings updated', data: settings });
   } catch (error) { next(error); }
 };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
@@ -7,18 +7,42 @@ import { useAuth } from '../../context/AuthContext';
 export default function AdminLogin() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Frontend Validation
+    const email = form.email.trim();
+    const password = form.password;
+
+    if (!email) {
+      return toast.error('Email address is required');
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return toast.error('Please enter a valid email address');
+    }
+
+    if (!password) {
+      return toast.error('Password is required');
+    }
+
+    if (password.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
+
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      await login(email, password);
       toast.success('Welcome back!');
       navigate('/admin/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Invalid credentials');
+      console.error('Login error:', err);
+      const message = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -26,9 +50,10 @@ export default function AdminLogin() {
 
   return (
     <>
-      <Helmet><title>Admin Login – EventPro</title></Helmet>
+      <Helmet><title>Admin Login – Shiv Event Management</title></Helmet>
+
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        {/* Background */}
+        {/* Background blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
@@ -37,52 +62,97 @@ export default function AdminLogin() {
         <div className="relative w-full max-w-md">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">E</div>
-              <span className="font-display text-2xl font-bold text-gray-900">Event<span className="gradient-text">Pro</span></span>
-            </div>
-            <p className="text-gray-500 text-sm">Admin Dashboard</p>
+            <a href="/" className="inline-flex items-center gap-2 mb-2 group">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-105 transition-transform">
+                E
+              </div>
+              <span className="font-display text-2xl font-bold text-gray-900">
+                Event<span className="gradient-text">Pro</span>
+              </span>
+            </a>
+            <p className="text-gray-500 text-sm mt-1">Admin Dashboard</p>
           </div>
 
-          <div className="card p-8">
+          <div className="card p-8 shadow-xl">
             <h1 className="font-display text-2xl font-bold text-gray-900 mb-1">Welcome back</h1>
             <p className="text-gray-500 text-sm mb-7">Sign in to manage your events</p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div>
-                <label className="block text-sm text-gray-500 mb-1.5">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Email Address
+                </label>
                 <input
-                  type="email" required
+                  type="email"
+                  required
+                  autoComplete="email"
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="admin@eventpro.com"
+                  placeholder="admin@Shiv Event Management.com"
                   className="input-field"
+                  disabled={loading}
                 />
               </div>
+
               <div>
-                <label className="block text-sm text-gray-500 mb-1.5">Password</label>
-                <input
-                  type="password" required
-                  value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="••••••••"
-                  className="input-field"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    value={form.password}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    placeholder="••••••••"
+                    className="input-field pr-10"
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm select-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
               </div>
+
               <button
-                type="submit" disabled={loading}
-                className="btn-primary w-full justify-center py-3 mt-2"
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full justify-center py-3 mt-1 gap-2"
               >
-                {loading
-                  ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Signing in…</>
-                  : '🔐 Sign In'}
+                {loading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    Signing in…
+                  </>
+                ) : '🔐 Sign In'}
               </button>
+
+              <div className="text-center pt-2">
+                <Link
+                  to="/admin/forgot-password"
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </form>
 
-            <p className="text-center text-xs text-gray-600 mt-6">
-              First time? <a href="/admin/setup" className="text-primary-600 hover:underline">Setup admin account</a>
-            </p>
+            {/* 
+              The /admin/setup route is intentionally not linked here.
+              Use it only for the very first time via direct URL.
+              The backend blocks it once an admin account already exists.
+            */}
           </div>
+
+          <p className="text-center text-xs text-gray-400 mt-6">
+            <a href="/" className="hover:text-gray-600 transition-colors">← Back to website</a>
+          </p>
         </div>
       </div>
     </>

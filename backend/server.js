@@ -1,5 +1,7 @@
-import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
@@ -20,56 +22,84 @@ import settingsRoutes from './routes/settingsRoutes.js';
 import pricingRoutes from './routes/pricingRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 
-dotenv.config();
-
 const app = express();
 
+console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME);
+console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY);
 // Connect Database
 connectDB();
 
-// Security Middlewares
+// ── Security Middlewares ──────────────────────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());
 
-// CORS
+// ── CORS ─────────────────────────────────────────────────────────────────────
 const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',')
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
   : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: Origin ${origin} not allowed`));
+  },
+  credentials: true,
 }));
 
-// Rate Limiting
+// ── Rate Limiters ─────────────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000, // 15 min
   max: parseInt(process.env.RATE_LIMIT_MAX) || 200,
-  message: { success: false, message: 'Too many requests, please try again later.' }
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' },
 });
 
-const authLimiter = rateLimit({
+// Tight limiter for admin login
+const adminAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { success: false, message: 'Too many login attempts, please try again later.' }
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts, please try again later.' },
+});
+
+// Moderate limiter for public user login/register
+const userAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many attempts, please try again later.' },
+});
+
+// Limiter for public booking/contact submissions
+const publicSubmitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many submissions, please try again later.' },
 });
 
 app.use('/api', globalLimiter);
-app.use('/api/auth', authLimiter);
+app.use('/api/auth', adminAuthLimiter);
 
-// Body Parser
+// ── Body Parser ───────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health Check
+// ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ success: true, message: 'EventPro API is running', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: 'Shiv Event Management API is running', timestamp: new Date().toISOString() });
 });
 
-// API Routes
+// ── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/contact', contactRoutes);
+app.use('/api/contact', publicSubmitLimiter, contactRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/services', serviceRoutes);
@@ -77,13 +107,17 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/pricing', pricingRoutes);
+
+// Apply user auth limiter only to login/register endpoints, not all user routes
+app.use('/api/users/register', userAuthLimiter);
+app.use('/api/users/login', userAuthLimiter);
 app.use('/api/users', userRoutes);
 
-// Error Handlers
+// ── Error Handlers ────────────────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 EventPro Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  console.log(`🚀 Shiv Event Management Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });

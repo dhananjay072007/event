@@ -60,7 +60,7 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <Helmet><title>Dashboard – EventPro Admin</title></Helmet>
+      <Helmet><title>Dashboard – Shiv Event Management Admin</title></Helmet>
 
       <div className="mb-6">
         <h1 className="font-display text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>

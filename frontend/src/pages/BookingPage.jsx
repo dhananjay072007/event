@@ -138,8 +138,8 @@ export default function BookingPage() {
   return (
     <>
       <Helmet>
-        <title>Book an Event – EventPro</title>
-        <meta name="description" content="Book your dream event with EventPro. Check date availability and get a response within 24 hours." />
+        <title>Book an Event – Shiv Event Management</title>
+        <meta name="description" content="Book your dream event with Shiv Event Management. Check date availability and get a response within 24 hours." />
       </Helmet>
       <Navbar />
 
@@ -204,8 +204,8 @@ export default function BookingPage() {
                 )}
                 {!checkingAvail && availability && (
                   <div className={`mt-2 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-2 ${availability.available
-                      ? 'bg-green-50 text-green-700 border border-green-200'
-                      : 'bg-red-50 text-red-700 border border-red-200'
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
                     {availability.available ? (
                       <>

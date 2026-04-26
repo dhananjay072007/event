@@ -1,4 +1,4 @@
-# 🎉 EventPro — Full-Stack Event Management Platform
+# 🎉 Shiv Event Management — Full-Stack Event Management Platform
 
 A production-ready MERN stack event management platform with admin dashboard, booking system, blog, gallery, and Razorpay payments.
 
@@ -145,4 +145,4 @@ Body: { "name": "Admin", "email": "admin@yoursite.com", "password": "StrongPass1
 
 ---
 
-Built with ❤️ — EventPro
+Built with ❤️ — Shiv Event Management

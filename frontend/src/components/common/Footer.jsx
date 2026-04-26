@@ -57,7 +57,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 animate-fadeInUp">
-          <p>© {new Date().getFullYear()} {s.companyName || 'EventPro'}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {s.companyName || 'Shiv Event Management'}. All rights reserved.</p>
           <div className="flex gap-4">
             <a href="#" className="hover:text-gray-300 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-gray-300 transition-colors">Terms of Service</a>

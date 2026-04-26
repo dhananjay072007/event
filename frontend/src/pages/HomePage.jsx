@@ -40,7 +40,7 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>{settings?.metaTitle || 'EventPro – Premium Event Management'}</title>
+        <title>{settings?.metaTitle || 'Shiv Event Management – Premium Event Management'}</title>
         <meta name="description" content={settings?.metaDescription || 'India\'s trusted event management company. Book your dream event today.'} />
       </Helmet>
       <Navbar />
@@ -80,7 +80,7 @@ export default function HomePage() {
         ) : (
           <div className="h-full bg-gradient-to-br from-primary-600 via-primary-700 to-purple-800 flex flex-col items-center justify-center text-center px-4 animate-blur-in">
             <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-4 animate-fadeInDown">
-              {settings?.companyName || 'EventPro'}
+              {settings?.companyName || 'Shiv Event Management'}
             </h1>
             <p className="text-white/80 text-xl md:text-2xl mb-10 animate-fadeInUp">{settings?.tagline || 'Premium Event Management'}</p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fadeInUp" style={{ animationDelay: '0.1s' }}>

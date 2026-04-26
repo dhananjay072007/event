@@ -62,7 +62,7 @@ export default function AdminBookings() {
 
   return (
     <>
-      <Helmet><title>Bookings – EventPro Admin</title></Helmet>
+      <Helmet><title>Bookings – Shiv Event Management Admin</title></Helmet>
 
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -185,8 +185,8 @@ export default function AdminBookings() {
                   <button key={s} disabled={updating || selected.status === s}
                     onClick={() => handleStatusUpdate(selected._id, s)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${selected.status === s
-                        ? `${STATUS_COLORS[s]} border-current`
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-900'
+                      ? `${STATUS_COLORS[s]} border-current`
+                      : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-900'
                       }`}>
                     {s.charAt(0).toUpperCase() + s.slice(1)}
                   </button>

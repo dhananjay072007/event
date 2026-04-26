@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     return (
         <>
-            <Helmet><title>Login – EventPro</title></Helmet>
+            <Helmet><title>Login – Shiv Event Management</title></Helmet>
             <Navbar />
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 pt-20 pb-16">
                 <div className="relative w-full max-w-md">

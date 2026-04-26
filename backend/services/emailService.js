@@ -9,8 +9,8 @@ const getResend = () => {
   return resend;
 };
 
-const FROM_EMAIL = () => process.env.RESEND_FROM || 'EventPro <onboarding@resend.dev>';
-const COMPANY = () => process.env.COMPANY_NAME || 'EventPro';
+const FROM_EMAIL = () => process.env.RESEND_FROM || 'Shiv Event Management <onboarding@resend.dev>';
+const COMPANY = () => process.env.COMPANY_NAME || 'Shiv Event Management';
 const FRONTEND = () => process.env.FRONTEND_URL || 'http://localhost:5173';
 const WHATSAPP = () => process.env.WHATSAPP_NUMBER || '';
 
@@ -187,4 +187,32 @@ export const sendBookingStatusUpdate = async (booking) => {
         ${WHATSAPP() ? `<p style="color:#4b5563;">Questions? Reach us on <a href="https://wa.me/${WHATSAPP()}" style="color:#25D366;font-weight:600;">WhatsApp</a>.</p>` : ''}`),
     });
   } catch (err) { console.error('Resend status update email failed:', err.message); }
+};
+
+// ==================== PASSWORD RESET EMAIL ====================
+
+export const sendPasswordResetEmail = async (email, resetUrl, name) => {
+  const r = getResend();
+  if (!r) return;
+
+  try {
+    await r.emails.send({
+      from: FROM_EMAIL(),
+      to: [email],
+      subject: `Password Reset Request – ${COMPANY()} Admin`,
+      html: layout('Reset Your Password', `
+        <h2 style="color:#1a1a2e;margin:0 0 16px;">Password Reset Request 🔐</h2>
+        <p style="color:#4b5563;line-height:1.6;">Hi <strong>${name}</strong>,</p>
+        <p style="color:#4b5563;line-height:1.6;">We received a request to reset your password. Click the button below to create a new password. <strong>This link expires in 15 minutes.</strong></p>
+        <div style="text-align:center;margin:32px 0;">
+          <a href="${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;padding:16px 48px;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px;">🔑 Reset Password</a>
+        </div>
+        <p style="color:#4b5563;margin-top:24px;font-size:14px;">Or copy this link:</p>
+        <p style="background:#f9fafb;padding:12px;border-radius:8px;color:#6366f1;word-break:break-all;font-size:12px;font-family:monospace;margin:8px 0;">${resetUrl}</p>
+        <div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:12px;border-radius:0 8px 8px 0;margin:24px 0;">
+          <p style="margin:0;color:#92400e;font-size:13px;font-weight:600;">⚠️ If you didn't request this, ignore this email. Your password won't change unless you click the link.</p>
+        </div>
+        <p style="color:#4b5563;font-size:13px;margin-top:16px;">For security reasons, this link will expire in <strong>15 minutes</strong>.</p>`),
+    });
+  } catch (err) { console.error('Resend password reset email failed:', err.message); }
 };
